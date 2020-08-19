@@ -1,5 +1,9 @@
 { config, pkgs, ... }:
 {
+  imports = [
+    ./../modules/virtualisation/amazon-image.nix
+  ];
+
   options.er.images.docker = {
   };
 
