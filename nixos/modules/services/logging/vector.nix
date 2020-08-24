@@ -31,7 +31,7 @@ in
     configDir = mkOption {
       type = types.path;
       description = "Vector configuration directory";
-    }
+    };
   };
 
   config = lib.mkIf cfg.enable {
