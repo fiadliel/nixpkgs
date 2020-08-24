@@ -4,25 +4,6 @@ with lib;
 
 let
   cfg = config.services.vector;
-  vectorConfig = pkgs.writeText "vector.conf" ''
-    [sources.in]
-      type = "journald"
-
-    [transforms.ec2_metadata]
-      type = "aws_ec2_metadata"
-      inputs = ["in"]
-
-    [sinks.out]
-      encoding.codec = "json"
-      inputs = ["ec2_metadata"]
-
-      type = "aws_cloudwatch_logs"
-      create_missing_group = false
-      create_missing_stream = true
-      group_name = "vector"
-      region = "us-east-1"
-      stream_name = "{{ host }}"
-  '';
 in
 {
   options.services.vector = {
@@ -42,10 +23,15 @@ in
     };
 
     group = mkOption {
-      type = with types;  uniq string;
+      type = with types; uniq string;
       description = "Group under which vector runs";
       default = "vector";
     };
+
+    configDir = mkOption {
+      type = types.path;
+      description = "Vector configuration directory";
+    }
   };
 
   config = lib.mkIf cfg.enable {
@@ -56,11 +42,11 @@ in
       requires      = [ "network-online.target" ];
       wantedBy      = [ "multi-user.target" ];
       reload        = "kill -HUP $MAINPID";
-      script        = "${cfg.package}/bin/vector --config ${vectorConfig}";
+      script        = "${cfg.package}/bin/vector --config ${cfg.configDir}";
 
       serviceConfig = {
         User = cfg.user;
-	Group = cfg.group;
+        Group = cfg.group;
 	Restart = "no";
       };
     };
